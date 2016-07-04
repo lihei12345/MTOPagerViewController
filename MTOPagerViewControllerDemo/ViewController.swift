@@ -40,6 +40,7 @@ class ViewController: UIViewController, MTOPagerDelegate {
     
     private lazy var pagerMenuView: PagerMenuView = {
         let view = PagerMenuView(titles: ["History", "Favor"])
+        view.highlightImageWidth = 65
         return view
     }()
     
@@ -56,7 +57,7 @@ class ViewController: UIViewController, MTOPagerDelegate {
     
     private lazy var historyVC: UIViewController = {
         let vc: UIViewController = UIViewController()
-        vc.view.backgroundColor = UIColor.blueColor()
+        vc.view.backgroundColor = UIColor.cyanColor()
         return vc
     }()
     
