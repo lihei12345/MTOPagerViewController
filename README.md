@@ -1,7 +1,7 @@
 # MTOPagerViewController
 MTORefresher is a iOS Container View Controller, like View Pager in Android.
 
-![Screenshot](https://cloud.githubusercontent.com/assets/1996801/16556049/5f254a34-420a-11e6-9a35-402da6fd4660.png)
+![Screenshot](https://cloud.githubusercontent.com/assets/1996801/16556302/dcd85fa6-420b-11e6-937c-8eff06829654.png)
 
 ## Demo
 
