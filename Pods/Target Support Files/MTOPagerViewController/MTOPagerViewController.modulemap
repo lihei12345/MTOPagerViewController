@@ -1,0 +1,6 @@
+framework module MTOPagerViewController {
+  umbrella header "MTOPagerViewController-umbrella.h"
+
+  export *
+  module * { export * }
+}
