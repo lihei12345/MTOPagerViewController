@@ -38,9 +38,11 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     
     public override func layoutSubviews() {
         super.layoutSubviews()
-        if perButtonWidth == nil && self.titles.count > 0 {
+        if self.titles.count > 0 {
             let max = min(self.titles.count, 5)
             perButtonWidth = self.bounds.size.width/CGFloat(max)
+        } else {
+            perButtonWidth = nil
         }
         updateTitles()
     }
