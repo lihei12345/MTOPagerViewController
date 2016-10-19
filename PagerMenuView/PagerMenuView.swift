@@ -10,11 +10,11 @@ import UIKit
 
 // MARK: - PagerMenuView -
 
-public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
+open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     
     // MARK: - Init
     
-    private let titles: [String]
+    fileprivate let titles: [String]
     
     public init(titles: [String]) {
         assert(titles.count > 0)
@@ -22,9 +22,9 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         self.titles = titles
         self.selectIndex = 0
         
-        super.init(frame: CGRectZero)
+        super.init(frame: CGRect.zero)
         
-        self.backgroundColor = UIColor.clearColor()
+        self.backgroundColor = UIColor.clear
         addSubview(contentScrollView)
         addSubview(selectedImageView)
         selectedImageView.backgroundColor = highlightColor
@@ -36,7 +36,7 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         if self.titles.count > 0 {
             let max = min(self.titles.count, 5)
@@ -47,64 +47,64 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         updateTitles()
     }
     
-    private lazy var contentScrollView: UIScrollView = {
+    fileprivate lazy var contentScrollView: UIScrollView = {
         let scrollView: UIScrollView = UIScrollView(frame: self.bounds)
-        scrollView.backgroundColor = UIColor.clearColor()
-        scrollView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+        scrollView.backgroundColor = UIColor.clear
+        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = self
         return scrollView
     }()
     
-    private lazy var selectedImageView: UIImageView = {
-        let imageView: UIImageView = UIImageView(frame: CGRectZero)
+    fileprivate lazy var selectedImageView: UIImageView = {
+        let imageView: UIImageView = UIImageView(frame: CGRect.zero)
         return imageView
     }()
     
-    private lazy var bottomLine: UIView = {
+    fileprivate lazy var bottomLine: UIView = {
         let bottomLine: UIView = UIView(frame: CGRect(x: 0.0, y: self.bounds.size.height - 1, width: self.bounds.size.width, height: 0.5))
-        bottomLine.autoresizingMask = [.FlexibleWidth, .FlexibleTopMargin]
+        bottomLine.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
         return bottomLine
     }()
     
     // MARK: - Public 
     
-    public func selectButton(index: Int) {
+    open func selectButton(_ index: Int) {
         selectIndex = index
         pagerViewController?.selectIndex = index
     }
     
-    public var separatorLineColor = UIColor(red: 0xC7/255, green: 0xC4/255, blue: 0xBE/255, alpha: 1) {
+    open var separatorLineColor = UIColor(red: 0xC7/255, green: 0xC4/255, blue: 0xBE/255, alpha: 1) {
         didSet {
             bottomLine.backgroundColor = separatorLineColor
         }
     }
     
-    public var highlightColor = UIColor(red: 0x19/255, green: 0xb9/255, blue: 0x55/155, alpha: 1) {
+    open var highlightColor = UIColor(red: 0x19/255, green: 0xb9/255, blue: 0x55/155, alpha: 1) {
         didSet {
             selectedImageView.backgroundColor = highlightColor
             for button in buttons {
-                button.setTitleColor(highlightColor, forState: .Selected)
+                button.setTitleColor(highlightColor, for: .selected)
             }
         }
     }
     
-    public var normalTextColor = UIColor(red: 0x54/255, green: 0x54/255, blue: 0x54/255, alpha: 1)  {
+    open var normalTextColor = UIColor(red: 0x54/255, green: 0x54/255, blue: 0x54/255, alpha: 1)  {
         didSet {
             for button in buttons {
-                button.setTitleColor(normalTextColor, forState: .Selected)
+                button.setTitleColor(normalTextColor, for: .selected)
             }
         }
     }
     
-    public var highlightImageWidth: CGFloat? {
+    open var highlightImageWidth: CGFloat? {
         didSet {
             updateHighlightImage()
         }
     }
     
-    public var perButtonWidth: CGFloat? {
+    open var perButtonWidth: CGFloat? {
         didSet {
             updateTitles()
         }
@@ -112,9 +112,9 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     
     // MARK: - Helper
     
-    private var buttons: [UIButton] = []
+    fileprivate var buttons: [UIButton] = []
     
-    private func updateTitles() {
+    fileprivate func updateTitles() {
         guard let perButtonWidth = perButtonWidth else { return }
         
         let height = self.bounds.size.height
@@ -123,30 +123,30 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
                 let title = titles[i]
                 let button = createButton(title)
                 button.tag = 1000 + i
-                button.addTarget(self, action: #selector(didTapTitleButton(_:)), forControlEvents: .TouchUpInside)
+                button.addTarget(self, action: #selector(didTapTitleButton(_:)), for: .touchUpInside)
                 contentScrollView.addSubview(button)
                 buttons.append(button)
             }
         }
         for i in 0...(buttons.count - 1) {
             buttons[i].frame = CGRect(x: CGFloat(i)*perButtonWidth, y: 0, width: perButtonWidth, height: height)
-            buttons[i].highlighted = false
+            buttons[i].isHighlighted = false
         }
         contentScrollView.contentSize = CGSize(width: perButtonWidth * CGFloat(buttons.count), height: 0)
         updateHighlightButton()
         updateHighlightImage()
     }
     
-    private func updateHighlightButton() {
+    fileprivate func updateHighlightButton() {
         guard selectIndex < buttons.count else { return }
         
         for i in 0...(buttons.count - 1) {
-            buttons[i].selected = (i == Int(selectIndex)) ? true : false
+            buttons[i].isSelected = (i == Int(selectIndex)) ? true : false
         }
     }
     
-    private func updateHighlightImage() {
-        guard let perButtonWidth = perButtonWidth where selectIndex < buttons.count else { return }
+    fileprivate func updateHighlightImage() {
+        guard let perButtonWidth = perButtonWidth , selectIndex < buttons.count else { return }
         
         if highlightImageWidth == nil {
             highlightImageWidth = perButtonWidth
@@ -159,32 +159,32 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         )
     }
     
-    func didTapTitleButton(button: UIButton) {
+    func didTapTitleButton(_ button: UIButton) {
         let index = button.tag - 1000
         selectButton(index)
     }
     
-    private func createButton(title: String) -> UIButton {
+    fileprivate func createButton(_ title: String) -> UIButton {
         let button = UIButton()
-        button.backgroundColor = UIColor.clearColor()
-        button.titleLabel?.font = UIFont.systemFontOfSize(15)
-        button.setTitleColor(normalTextColor, forState: .Normal)
-        button.setTitleColor(highlightColor, forState: .Selected)
-        button.setTitle(title, forState: .Normal)
+        button.backgroundColor = UIColor.clear
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        button.setTitleColor(normalTextColor, for: UIControlState())
+        button.setTitleColor(highlightColor, for: .selected)
+        button.setTitle(title, for: UIControlState())
         return button
     }
     
     // MARK: - MTOPagerMenuView
     
-    public weak var pagerViewController: MTOPagerViewController?
+    open weak var pagerViewController: MTOPagerViewController?
     
-    public var selectIndex: Int {
+    open var selectIndex: Int {
         didSet {
             updateHighlightButton()
         }
     }
     
-    public func pagerDidScroll(scrollView: UIScrollView) {
+    open func pagerDidScroll(scrollView: UIScrollView) {
         guard let perButtonWidth = perButtonWidth, let highlightImageWidth = highlightImageWidth else { return }
         
         let scrollPercentage: CGFloat = scrollView.contentOffset.x / scrollView.contentSize.width
@@ -194,15 +194,15 @@ public class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         selectedImageView.frame = frame
     }
     
-    public func pagerDidEndDragging(scrollView: UIScrollView) {
+    open func pagerDidEndDragging(scrollView: UIScrollView) {
         // do nothing
     }
     
-    public func pagerDidEndDecelerating(scrollView: UIScrollView) {
+    open func pagerDidEndDecelerating(scrollView: UIScrollView) {
         // do nothing
     }
     
-    public func pager(scrollView: UIScrollView, didSelectIndex index: Int) {
+    open func pager(scrollView: UIScrollView, didSelectIndex index: Int) {
         selectIndex = index
     }
 }

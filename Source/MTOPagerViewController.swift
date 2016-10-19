@@ -13,6 +13,7 @@ import UIKit
 public protocol MTOPagerMenuView: NSObjectProtocol {
     var selectIndex: Int { get set }
     weak var pagerViewController: MTOPagerViewController? { get set }
+    
     func pagerDidScroll(scrollView: UIScrollView)
     func pagerDidEndDecelerating(scrollView: UIScrollView)
     func pagerDidEndDragging(scrollView: UIScrollView)
@@ -22,22 +23,22 @@ public protocol MTOPagerMenuView: NSObjectProtocol {
 // MARK: - MTOPagerDelegate -
 
 public protocol MTOPagerDelegate: NSObjectProtocol {
-    func mtoPager(pager: MTOPagerViewController, childControllerAtIndex index: Int) -> UIViewController;
-    func mtoPagerNumOfChildControllers(pager: MTOPagerViewController) -> Int;
-    func mtoPager(pager: MTOPagerViewController, didSelectChildController index: Int);
+    func mto(pager: MTOPagerViewController, childControllerAtIndex index: Int) -> UIViewController;
+    func mtoNumOfChildControllers(pager: MTOPagerViewController) -> Int;
+    func mto(pager: MTOPagerViewController, didSelectChildController index: Int);
 }
 
 // MARK: - MTOPagerViewController -
 
-public class MTOPagerViewController: UIViewController {
+open class MTOPagerViewController: UIViewController {
     
     // MARK: - Life Cycle
     
-    weak private var delegate: MTOPagerDelegate?
-    private let menuView: MTOPagerMenuView
+    weak fileprivate var delegate: MTOPagerDelegate?
+    fileprivate let menuView: MTOPagerMenuView
     
     public init(delegate: MTOPagerDelegate, menu: MTOPagerMenuView) {
-        assert(menu.isKindOfClass(UIView), "MTOPagerMenuView must be subclass of UIView")
+        assert(menu.isKind(of: UIView.self), "MTOPagerMenuView must be subclass of UIView")
         
         self.delegate = delegate
         pageSpace = 15
@@ -52,13 +53,13 @@ public class MTOPagerViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         self.view.addSubview(contentScrollView)
         reload()
     }
     
-    public override func viewDidLayoutSubviews() {
+    open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
         let width = self.view.bounds.size.width
@@ -69,21 +70,21 @@ public class MTOPagerViewController: UIViewController {
     
     // MARK: - Public
     
-    public var pageSpace: CGFloat {
+    open var pageSpace: CGFloat {
         didSet {
             self.view.setNeedsLayout()
         }
     }
     
-    public var scrollable: Bool {
+    open var scrollable: Bool {
         willSet {
-            contentScrollView.scrollEnabled = newValue
+            contentScrollView.isScrollEnabled = newValue
         }
     }
     
-    public var selectIndex: Int {
+    open var selectIndex: Int {
         set(value) {
-            if self.isViewLoaded() {
+            if self.isViewLoaded {
                 let count = controllerCount
                 if value >= count || value < 0 {
                     _selectedIndex = 0
@@ -100,7 +101,7 @@ public class MTOPagerViewController: UIViewController {
         }
     }
     
-    public func reload() {
+    open func reload() {
         for controller in self.childViewControllers {
             controller.removeFromParentViewController()
         }
@@ -125,20 +126,20 @@ public class MTOPagerViewController: UIViewController {
     private var controllersMap: [Int : UIViewController] = [:]
     
     private lazy var contentScrollView: UIScrollView = {
-        let scrollView: UIScrollView = UIScrollView(frame: CGRectZero)
+        let scrollView: UIScrollView = UIScrollView(frame: CGRect.zero)
         scrollView.delegate = self
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
-        scrollView.pagingEnabled = true
-        scrollView.backgroundColor = UIColor.clearColor()
-        scrollView.scrollEnabled = self.scrollable
+        scrollView.isPagingEnabled = true
+        scrollView.backgroundColor = UIColor.clear
+        scrollView.isScrollEnabled = self.scrollable
         return scrollView
     }()
     
     private var controllerCount:Int {
         get {
             var count:Int = 0
-            if let c = self.delegate?.mtoPagerNumOfChildControllers(self) {
+            if let c = self.delegate?.mtoNumOfChildControllers(pager: self) {
                 count = c
             }
             return count
@@ -148,7 +149,7 @@ public class MTOPagerViewController: UIViewController {
     private func controllerAtIndex(at index:Int) -> UIViewController {
         var controller: UIViewController? = controllersMap[index]
         if controller == nil {
-            if let c = self.delegate?.mtoPager(self, childControllerAtIndex: index) {
+            if let c = self.delegate?.mto(pager: self, childControllerAtIndex: index) {
                 controller = c
                 controllersMap[index] = c
                 addChildViewController(c)
@@ -168,9 +169,9 @@ public class MTOPagerViewController: UIViewController {
         }
         updateSelectedController()
         if let delegate = self.delegate {
-            delegate.mtoPager(self, didSelectChildController: _selectedIndex)
+            delegate.mto(pager: self, didSelectChildController: _selectedIndex)
         }
-        menuView.pager(contentScrollView, didSelectIndex: _selectedIndex)
+        menuView.pager(scrollView: contentScrollView, didSelectIndex: _selectedIndex)
     }
     
     private func updateSelectedController() {
@@ -192,7 +193,7 @@ public class MTOPagerViewController: UIViewController {
         }
     }
     
-    private func refreshIndexWhenEndScrolling() {
+    fileprivate func refreshIndexWhenEndScrolling() {
         let offsetX = contentScrollView.contentOffset.x
         let width = contentScrollView.bounds.size.width
         let index: Int = Int(round(offsetX/width))
@@ -211,18 +212,18 @@ public class MTOPagerViewController: UIViewController {
 // MARK: - MTOPagerViewController+UIScrollViewDelegate -
 
 extension MTOPagerViewController: UIScrollViewDelegate {
-    public func scrollViewDidScroll(scrollView: UIScrollView) {
-        menuView.pagerDidScroll(scrollView)
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        menuView.pagerDidScroll(scrollView: scrollView)
     }
     
-    public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         refreshIndexWhenEndScrolling()
-        menuView.pagerDidEndDecelerating(scrollView)
+        menuView.pagerDidEndDecelerating(scrollView: scrollView)
     }
     
-    public func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         refreshIndexWhenEndScrolling()
-        menuView.pagerDidEndDragging(scrollView)
+        menuView.pagerDidEndDragging(scrollView: scrollView)
     }
 }
 
@@ -234,11 +235,11 @@ public extension UIViewController {
             var pager: MTOPagerViewController?
             var viewController: UIViewController? = self
             while viewController != nil {
-                if let _ = viewController!.parentViewController?.isKindOfClass(MTOPagerViewController) {
-                    pager = viewController?.parentViewController as? MTOPagerViewController
+                if let _ = viewController!.parent?.isKind(of: MTOPagerViewController.self) {
+                    pager = viewController?.parent as? MTOPagerViewController
                     break
                 } else {
-                    viewController = viewController?.parentViewController
+                    viewController = viewController?.parent
                 }
             }
             return pager

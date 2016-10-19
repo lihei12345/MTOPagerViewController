@@ -18,14 +18,14 @@ class ViewController: UIViewController, MTOPagerDelegate {
         
         self.title = "MTOPagerViewController"
         
-        self.edgesForExtendedLayout = .None
+        self.edgesForExtendedLayout = UIRectEdge()
         self.view.addSubview(pagerMenuView)
         
         addChildViewController(pagerVC)
         self.view.addSubview(pagerVC.view)
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
     }
     
@@ -38,40 +38,40 @@ class ViewController: UIViewController, MTOPagerDelegate {
     
     // MARK: - Pager
     
-    private lazy var pagerMenuView: PagerMenuView = {
+    fileprivate lazy var pagerMenuView: PagerMenuView = {
         let view = PagerMenuView(titles: ["History", "Favor"])
         view.highlightImageWidth = 65
         return view
     }()
     
-    private lazy var pagerVC: MTOPagerViewController = {
+    fileprivate lazy var pagerVC: MTOPagerViewController = {
         let pager = MTOPagerViewController(delegate: self, menu: self.pagerMenuView)
         return pager
     }()
     
-    private lazy var favorVC: UIViewController = {
+    fileprivate lazy var favorVC: UIViewController = {
         let vc: UIViewController = UIViewController()
-        vc.view.backgroundColor = UIColor.yellowColor()
+        vc.view.backgroundColor = UIColor.yellow
         return vc
     }()
     
-    private lazy var historyVC: UIViewController = {
+    fileprivate lazy var historyVC: UIViewController = {
         let vc: UIViewController = UIViewController()
-        vc.view.backgroundColor = UIColor.cyanColor()
+        vc.view.backgroundColor = UIColor.cyan
         return vc
     }()
     
     // MARK: - MTOPagerDelegate
     
-    func mtoPagerNumOfChildControllers(pager: MTOPagerViewController) -> Int {
+    func mtoNumOfChildControllers(pager: MTOPagerViewController) -> Int {
         return 2
     }
     
-    func mtoPager(pager: MTOPagerViewController, didSelectChildController index: Int) {
+    func mto(pager: MTOPagerViewController, didSelectChildController index: Int) {
         // do nothing
     }
     
-    func mtoPager(pager: MTOPagerViewController, childControllerAtIndex index: Int) -> UIViewController {
+    func mto(pager: MTOPagerViewController, childControllerAtIndex index: Int) -> UIViewController {
         if index == 0 {
             return historyVC
         } else {
