@@ -9,6 +9,43 @@
 import UIKit
 import MTOPagerViewController
 
+class BaseViewController: UIViewController {
+    
+    static var counter: Int = 0
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        print(String(describing: BaseViewController.self) + " : " + #function)
+        
+        if BaseViewController.counter%2 == 0 {
+            self.view.backgroundColor = UIColor.yellow
+        } else {
+            self.view.backgroundColor = UIColor.gray
+        }
+        BaseViewController.counter = BaseViewController.counter + 1;
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print(String(describing: BaseViewController.self) + " : " + #function)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print(String(describing: BaseViewController.self) + " : " + #function)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        print(String(describing: BaseViewController.self) + " : " + #function)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        print(String(describing: BaseViewController.self) + " : " + #function)
+    }
+}
+
 class ViewController: UIViewController, MTOPagerDelegate {
     
     // MARK: - Life Cycle
@@ -23,10 +60,6 @@ class ViewController: UIViewController, MTOPagerDelegate {
         
         addChildViewController(pagerVC)
         self.view.addSubview(pagerVC.view)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
     }
     
     override func viewDidLayoutSubviews() {
@@ -50,14 +83,12 @@ class ViewController: UIViewController, MTOPagerDelegate {
     }()
     
     fileprivate lazy var favorVC: UIViewController = {
-        let vc: UIViewController = UIViewController()
-        vc.view.backgroundColor = UIColor.yellow
+        let vc: UIViewController = BaseViewController()
         return vc
     }()
     
     fileprivate lazy var historyVC: UIViewController = {
-        let vc: UIViewController = UIViewController()
-        vc.view.backgroundColor = UIColor.cyan
+        let vc: UIViewController = BaseViewController()
         return vc
     }()
     
@@ -68,7 +99,7 @@ class ViewController: UIViewController, MTOPagerDelegate {
     }
     
     func mto(pager: MTOPagerViewController, didSelectChildController index: Int) {
-        // do nothing
+        
     }
     
     func mto(pager: MTOPagerViewController, childControllerAtIndex index: Int) -> UIViewController {

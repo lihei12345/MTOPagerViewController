@@ -1,8 +1,8 @@
 PODS:
-  - MTOPagerViewController (0.1.0):
-    - MTOPagerViewController/Core (= 0.1.0)
-  - MTOPagerViewController/Core (0.1.0)
-  - MTOPagerViewController/PagerMenuView (0.1.0):
+  - MTOPagerViewController (1.0.0):
+    - MTOPagerViewController/Core (= 1.0.0)
+  - MTOPagerViewController/Core (1.0.0)
+  - MTOPagerViewController/PagerMenuView (1.0.0):
     - MTOPagerViewController/Core
 
 DEPENDENCIES:
@@ -14,6 +14,6 @@ EXTERNAL SOURCES:
     :path: "."
 
 SPEC CHECKSUMS:
-  MTOPagerViewController: 7717a4174dafd55c7a6a1a963d9f4e23f7525682
+  MTOPagerViewController: 0b83b24cfa1663973c66a1877b3ff15622b437b3
 
 COCOAPODS: 0.39.0

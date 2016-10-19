@@ -36,6 +36,7 @@ open class MTOPagerViewController: UIViewController {
     
     weak fileprivate var delegate: MTOPagerDelegate?
     fileprivate let menuView: MTOPagerMenuView
+    private var controllersArray: [UIViewController] = []
     
     public init(delegate: MTOPagerDelegate, menu: MTOPagerMenuView) {
         assert(menu.isKind(of: UIView.self), "MTOPagerMenuView must be subclass of UIView")
@@ -65,7 +66,42 @@ open class MTOPagerViewController: UIViewController {
         let width = self.view.bounds.size.width
         contentScrollView.frame = CGRect(x: -pageSpace/2.0, y: 0, width: width + pageSpace, height: self.view.bounds.size.height)
         contentScrollView.contentSize = CGSize(width: CGFloat(controllerCount) * contentScrollView.bounds.size.width, height: 0)
-        updateSelectedController()
+        updateControllerFrame()
+    }
+    
+    open override var shouldAutomaticallyForwardAppearanceMethods: Bool {
+        return false
+    }
+    
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if let vc = currentViewController() {
+            vc.beginAppearanceTransition(true, animated: animated)
+        }
+    }
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let vc = currentViewController() {
+            vc.endAppearanceTransition()
+        }
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        if let vc = currentViewController() {
+            vc.beginAppearanceTransition(false, animated: animated)
+        }
+    }
+    
+    open override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        if let vc = currentViewController() {
+            vc.endAppearanceTransition()
+        }
     }
     
     // MARK: - Public
@@ -85,45 +121,52 @@ open class MTOPagerViewController: UIViewController {
     open var selectIndex: Int {
         set(value) {
             if self.isViewLoaded {
-                let count = controllerCount
-                if value >= count || value < 0 {
-                    _selectedIndex = 0
-                } else {
-                    _selectedIndex = value
-                }
-                updateSelectIndex()
+                update(newIndex: value)
             } else {
-                _selectedIndex = value
+                currentSelectedIndex = value
             }
         }
         get {
-            return _selectedIndex
+            return currentSelectedIndex
+        }
+    }
+    
+    private var controllerCount:Int {
+        get {
+            return controllersArray.count
         }
     }
     
     open func reload() {
+        /// clean up
         for controller in self.childViewControllers {
             controller.removeFromParentViewController()
         }
-        controllersMap.removeAll()
+        controllersArray.removeAll()
         contentScrollView.mto_pager_removeAllSubviews()
         
-        let count = controllerCount
-        if count == 0 {
+        guard let count = self.delegate?.mtoNumOfChildControllers(pager: self) else {
+            fatalError("must return a count in func mtoNumOfChildControllers")
             return
         }
-        
-        let width = contentScrollView.bounds.size.width
-        contentScrollView.contentSize = CGSize(width: CGFloat(count) * width, height: 0)
-        if _selectedIndex >= count || _selectedIndex < 0 {
-            _selectedIndex = 0
+        guard count > 0 else {
+            return
         }
-        updateSelectIndex()
+        for index in 0...(count - 1) {
+            if let controller = self.delegate?.mto(pager: self, childControllerAtIndex: index) {
+                controllersArray.append(controller)
+            } else {
+                fatalError("must return a controller in func mtoPager(pager: MTOPagerViewController, childControllerAtIndex index: Int)")
+            }
+        }
+        contentScrollView.contentSize = CGSize(width: CGFloat(count) * contentScrollView.bounds.size.width, height: 0)
+        
+        currentSelectedIndex = 0
+        previousSelectIndex = 0
+        update(newIndex: 0)
     }
     
     // MARK: - Private
-    
-    private var controllersMap: [Int : UIViewController] = [:]
     
     private lazy var contentScrollView: UIScrollView = {
         let scrollView: UIScrollView = UIScrollView(frame: CGRect.zero)
@@ -136,56 +179,55 @@ open class MTOPagerViewController: UIViewController {
         return scrollView
     }()
     
-    private var controllerCount:Int {
-        get {
-            var count:Int = 0
-            if let c = self.delegate?.mtoNumOfChildControllers(pager: self) {
-                count = c
-            }
-            return count
-        }
-    }
+    private var currentSelectedIndex: Int = 0
+    private var previousSelectIndex: Int = 0
     
-    private func controllerAtIndex(at index:Int) -> UIViewController {
-        var controller: UIViewController? = controllersMap[index]
-        if controller == nil {
-            if let c = self.delegate?.mto(pager: self, childControllerAtIndex: index) {
-                controller = c
-                controllersMap[index] = c
-                addChildViewController(c)
-            } else {
-                fatalError("must return a controller in func mtoPager(pager: MTOPagerViewController, childControllerAtIndex index: Int)")
-            }
-        }
-        return controller!
-    }
-    
-    private var _selectedIndex: Int = 0
-    
-    private func updateSelectIndex() {
+    private func update(newIndex: Int) {
         let count = controllerCount
-        if _selectedIndex >= count || _selectedIndex < 0 {
+        if newIndex >= count || newIndex < 0 {
             return
         }
-        updateSelectedController()
-        if let delegate = self.delegate {
-            delegate.mto(pager: self, didSelectChildController: _selectedIndex)
-        }
-        menuView.pager(scrollView: contentScrollView, didSelectIndex: _selectedIndex)
-    }
-    
-    private func updateSelectedController() {
-        let count = controllerCount
-        if _selectedIndex >= count || _selectedIndex < 0 {
-            return
-        }
-        let width: CGFloat = contentScrollView.bounds.size.width
-        let controller: UIViewController = controllerAtIndex(at: _selectedIndex)
-        let x:CGFloat = CGFloat(_selectedIndex) * width + pageSpace/2.0
-        controller.view.frame = CGRect(x: x, y: 0, width: width, height: contentScrollView.bounds.size.height)
-        contentScrollView.addSubview(controller.view)
+        previousSelectIndex = currentSelectedIndex
+        currentSelectedIndex = newIndex
         
-        let targetOffset: CGFloat = width * CGFloat(_selectedIndex)
+        let controller: UIViewController = controllersArray[currentSelectedIndex]
+        var shouldTransition = true
+        if controller.parent == nil {
+            shouldTransition = false
+            self.addChildViewController(controller)
+            contentScrollView.addSubview(controller.view)
+            controller.didMove(toParentViewController: self)
+        }
+        updateControllerFrame()
+        
+        if let delegate = self.delegate {
+            delegate.mto(pager: self, didSelectChildController: currentSelectedIndex)
+        }
+        menuView.pager(scrollView: contentScrollView, didSelectIndex: currentSelectedIndex)
+        
+        if previousSelectIndex != currentSelectedIndex && self.view.window != nil {
+            let fromVC = controllersArray[previousSelectIndex]
+            fromVC.beginAppearanceTransition(false, animated: false)
+            fromVC.endAppearanceTransition()
+            
+            if shouldTransition {
+                controller.beginAppearanceTransition(true, animated: false)
+                controller.endAppearanceTransition()
+            }
+        }
+    }
+    
+    private func updateControllerFrame() {
+        if currentSelectedIndex >= controllerCount || currentSelectedIndex < 0 {
+            return
+        }
+        
+        let width: CGFloat = contentScrollView.bounds.size.width
+        let controller: UIViewController = controllersArray[currentSelectedIndex]
+        let x:CGFloat = CGFloat(currentSelectedIndex) * width + pageSpace/2.0
+        controller.view.frame = CGRect(x: x, y: 0, width: width, height: contentScrollView.bounds.size.height)
+        
+        let targetOffset: CGFloat = width * CGFloat(currentSelectedIndex)
         if fabs(targetOffset - contentScrollView.contentOffset.x) < 0.1 {
             // do nothing
         } else {
@@ -193,19 +235,24 @@ open class MTOPagerViewController: UIViewController {
         }
     }
     
+    private func currentViewController() -> UIViewController? {
+        if currentSelectedIndex >= controllerCount || currentSelectedIndex < 0 {
+            return nil
+        }
+        return controllersArray[currentSelectedIndex]
+    }
+    
     fileprivate func refreshIndexWhenEndScrolling() {
         let offsetX = contentScrollView.contentOffset.x
         let width = contentScrollView.bounds.size.width
         let index: Int = Int(round(offsetX/width))
-        let count: Int = controllerCount
-        if index >= count || index < 0 {
+        if index >= controllerCount || index < 0 {
             return
         }
-        if _selectedIndex == index {
+        if currentSelectedIndex == index {
             return
         }
-        _selectedIndex = index
-        updateSelectIndex()
+        update(newIndex: index)
     }
 }
 
