@@ -75,6 +75,12 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         pagerViewController?.selectIndex = index
     }
     
+    open var showSeparatorLine = true {
+        didSet {
+            bottomLine.isHidden = !showSeparatorLine
+        }
+    }
+    
     open var separatorLineColor = UIColor(red: 0xC7/255, green: 0xC4/255, blue: 0xBE/255, alpha: 1) {
         didSet {
             bottomLine.backgroundColor = separatorLineColor
@@ -98,6 +104,12 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         }
     }
     
+    open var showHighlightImage = true {
+        didSet {
+            updateHighlightImage()
+        }
+    }
+    
     open var highlightImageWidth: CGFloat? {
         didSet {
             updateHighlightImage()
@@ -105,6 +117,12 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     }
     
     open var perButtonWidth: CGFloat? {
+        didSet {
+            updateTitles()
+        }
+    }
+    
+    open var scaleFactor: CGFloat = 1 {
         didSet {
             updateTitles()
         }
@@ -141,12 +159,24 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         guard selectIndex < buttons.count else { return }
         
         for i in 0...(buttons.count - 1) {
-            buttons[i].isSelected = (i == Int(selectIndex)) ? true : false
+            let button = buttons[i]
+            button.isSelected = (i == Int(selectIndex)) ? true : false
+            var factor: CGFloat = (i == Int(selectIndex)) ? scaleFactor : 1
+            UIView.animate(withDuration: 0.2, animations: {
+                button.transform = CGAffineTransform(scaleX: factor, y: factor)
+            })
         }
     }
     
     fileprivate func updateHighlightImage() {
         guard let perButtonWidth = perButtonWidth , selectIndex < buttons.count else { return }
+        
+        if !showSeparatorLine {
+            selectedImageView.isHidden = true
+            return
+        } else {
+            selectedImageView.isHidden = false
+        }
         
         if highlightImageWidth == nil {
             highlightImageWidth = perButtonWidth
