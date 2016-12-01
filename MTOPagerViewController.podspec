@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name		          = "MTOPagerViewController"
-  s.version          	= "1.1.0"
+  s.version          	= "1.2.0"
   s.summary          	= "MTORefresher is a Swift implementation of View Pager"
   s.description      	= "MTORefresher is a Swift implementation of View Pager. It's completed by iOS Container View Controller. You can custom your own menu view."
   s.homepage         	= "https://github.com/lihei12345/MTOPagerViewController"

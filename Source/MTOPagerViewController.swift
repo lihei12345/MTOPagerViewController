@@ -225,7 +225,7 @@ open class MTOPagerViewController: UIViewController {
         let width: CGFloat = contentScrollView.bounds.size.width
         let controller: UIViewController = controllersArray[currentSelectedIndex]
         let x:CGFloat = CGFloat(currentSelectedIndex) * width + pageSpace/2.0
-        controller.view.frame = CGRect(x: x, y: 0, width: width, height: contentScrollView.bounds.size.height)
+        controller.view.frame = CGRect(x: x, y: 0, width: width - pageSpace, height: contentScrollView.bounds.size.height)
         
         let targetOffset: CGFloat = width * CGFloat(currentSelectedIndex)
         if fabs(targetOffset - contentScrollView.contentOffset.x) < 0.1 {
