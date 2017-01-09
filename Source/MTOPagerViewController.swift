@@ -37,10 +37,12 @@ open class MTOPagerViewController: UIViewController {
     weak fileprivate var delegate: MTOPagerDelegate?
     fileprivate let menuView: MTOPagerMenuView
     private var controllersArray: [UIViewController] = []
+    private var firstSelectedIndex: Int
     
-    public init(delegate: MTOPagerDelegate, menu: MTOPagerMenuView) {
+    public init(delegate: MTOPagerDelegate, menu: MTOPagerMenuView, selectedIndex: Int = 0) {
         assert(menu.isKind(of: UIView.self), "MTOPagerMenuView must be subclass of UIView")
         
+        self.firstSelectedIndex = selectedIndex
         self.delegate = delegate
         pageSpace = 15
         scrollable = true
@@ -66,7 +68,7 @@ open class MTOPagerViewController: UIViewController {
         let width = self.view.bounds.size.width
         contentScrollView.frame = CGRect(x: -pageSpace/2.0, y: 0, width: width + pageSpace, height: self.view.bounds.size.height)
         contentScrollView.contentSize = CGSize(width: CGFloat(controllerCount) * contentScrollView.bounds.size.width, height: 0)
-        updateControllerFrame()
+        updateControllerFrame(animated: false)
     }
     
     open override var shouldAutomaticallyForwardAppearanceMethods: Bool {
@@ -161,9 +163,12 @@ open class MTOPagerViewController: UIViewController {
         }
         contentScrollView.contentSize = CGSize(width: CGFloat(count) * contentScrollView.bounds.size.width, height: 0)
         
-        currentSelectedIndex = 0
+        currentSelectedIndex = firstSelectedIndex
+        if currentSelectedIndex >= count || currentSelectedIndex < 0 {
+            currentSelectedIndex = 0
+        }
         previousSelectIndex = 0
-        update(newIndex: 0)
+        update(newIndex: currentSelectedIndex, animated: false)
     }
     
     // MARK: - Private
@@ -182,7 +187,7 @@ open class MTOPagerViewController: UIViewController {
     private var currentSelectedIndex: Int = 0
     private var previousSelectIndex: Int = 0
     
-    private func update(newIndex: Int) {
+    private func update(newIndex: Int, animated: Bool = true) {
         let count = controllerCount
         if newIndex >= count || newIndex < 0 {
             return
@@ -198,7 +203,7 @@ open class MTOPagerViewController: UIViewController {
             contentScrollView.addSubview(controller.view)
             controller.didMove(toParentViewController: self)
         }
-        updateControllerFrame()
+        updateControllerFrame(animated: animated)
         
         if let delegate = self.delegate {
             delegate.mto(pager: self, didSelectChildController: currentSelectedIndex)
@@ -217,7 +222,7 @@ open class MTOPagerViewController: UIViewController {
         }
     }
     
-    private func updateControllerFrame() {
+    private func updateControllerFrame(animated: Bool = true) {
         if currentSelectedIndex >= controllerCount || currentSelectedIndex < 0 {
             return
         }
@@ -231,7 +236,7 @@ open class MTOPagerViewController: UIViewController {
         if fabs(targetOffset - contentScrollView.contentOffset.x) < 0.1 {
             // do nothing
         } else {
-            contentScrollView.setContentOffset(CGPoint(x: targetOffset, y: 0), animated: true)
+            contentScrollView.setContentOffset(CGPoint(x: targetOffset, y: 0), animated: animated)
         }
     }
     
