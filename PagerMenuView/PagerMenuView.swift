@@ -90,9 +90,6 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     open var highlightColor = UIColor(red: 0x19/255, green: 0xb9/255, blue: 0x55/155, alpha: 1) {
         didSet {
             selectedImageView.backgroundColor = highlightColor
-            for button in buttons {
-                button.setTitleColor(highlightColor, for: .selected)
-            }
         }
     }
     
@@ -100,6 +97,14 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         didSet {
             for button in buttons {
                 button.setTitleColor(normalTextColor, for: .selected)
+            }
+        }
+    }
+    
+    open var highlightTextColor = UIColor(red: 0x19/255, green: 0xb9/255, blue: 0x55/155, alpha: 1) {
+        didSet {
+            for button in buttons {
+                button.setTitleColor(highlightTextColor, for: .selected)
             }
         }
     }
@@ -128,6 +133,12 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
         }
     }
     
+    open var titleFont: UIFont = UIFont.systemFont(ofSize: 15) {
+        didSet {
+            updateTitles()
+        }
+    }
+    
     // MARK: - Helper
     
     fileprivate var buttons: [UIButton] = []
@@ -147,6 +158,7 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
             }
         }
         for i in 0...(buttons.count - 1) {
+            buttons[i].titleLabel?.font = self.titleFont
             buttons[i].frame = CGRect(x: CGFloat(i)*perButtonWidth, y: 0, width: perButtonWidth, height: height)
             buttons[i].isHighlighted = false
         }
@@ -171,7 +183,7 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     fileprivate func updateHighlightImage() {
         guard let perButtonWidth = perButtonWidth , selectIndex < buttons.count else { return }
         
-        if !showSeparatorLine {
+        if !showHighlightImage {
             selectedImageView.isHidden = true
             return
         } else {
@@ -197,9 +209,8 @@ open class PagerMenuView: UIView, MTOPagerMenuView, UIScrollViewDelegate {
     fileprivate func createButton(_ title: String) -> UIButton {
         let button = UIButton()
         button.backgroundColor = UIColor.clear
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         button.setTitleColor(normalTextColor, for: UIControlState())
-        button.setTitleColor(highlightColor, for: .selected)
+        button.setTitleColor(highlightTextColor, for: .selected)
         button.setTitle(title, for: UIControlState())
         return button
     }
